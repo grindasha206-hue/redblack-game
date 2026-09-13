@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Красное-Чёрное — пульт ведущего</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&display=swap');
+  :root{
+    --bg:#fdfbf6; --card:#fff; --text:#161311; --muted:#83766c; --border:#eae3d6;
+    --red:#e30613; --black:#161311; --ok:#1a7d3a; --warn:#b45309; --warnbg:#fff2e0;
+    --shadow:0 2px 10px rgba(20,10,0,.06);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    padding:20px 20px 60px;
+    background-image:radial-gradient(var(--border) 1px, transparent 1px);
+    background-size:22px 22px;
+  }
+  .wrap{max-width:1500px;margin:0 auto;position:relative;z-index:1}
+  .card-deco{position:fixed;font-size:15rem;line-height:1;pointer-events:none;z-index:0;opacity:.045;user-select:none}
+  .card-deco.tl{top:-3rem;left:-3rem;color:var(--black)}
+  .card-deco.tr{top:-3rem;right:-3rem;color:var(--red)}
+  .card-deco.bl{bottom:-3rem;left:-3rem;color:var(--red)}
+  .card-deco.br{bottom:-3rem;right:-3rem;color:var(--black)}
+  @media (max-width:900px){.card-deco{font-size:8rem}}
+  h1{
+    font-family:'Arvo',Georgia,serif; font-weight:700; font-size:1.9rem; margin:0 0 4px;
+    letter-spacing:-.5px;
+  }
+  h1 .red{color:var(--red)}
+  h1 .suit{font-size:1.3rem; vertical-align:2px}
+  .sub{color:var(--muted);font-size:.92rem;margin-bottom:20px}
+  .card{
+    background:var(--card);border:1px solid var(--border);border-radius:14px;
+    box-shadow:var(--shadow);padding:20px;margin-bottom:18px;
+  }
+  h2{
+    font-family:'Arvo',Georgia,serif; font-weight:700; font-size:1.05rem; margin:0 0 14px;
+    display:flex; align-items:center; gap:8px;
+  }
+  h2::before{content:'♦'; color:var(--red); font-size:1.1rem}
+  button{
+    font-family:inherit;font-size:.92rem;font-weight:600;padding:10px 16px;border-radius:9px;
+    border:2px solid var(--black);background:#fff;color:var(--black);cursor:pointer;
+    transition:transform .05s;
+  }
+  button.primary{background:var(--black);border-color:var(--black);color:#fff}
+  button.danger{background:var(--red);border-color:var(--red);color:#fff}
+  button:disabled{opacity:.4;cursor:default}
+  button:active:not(:disabled){transform:translateY(1px)}
+  input[type=text]{
+    font-family:inherit;font-size:.92rem;padding:9px 11px;border-radius:9px;
+    border:1.5px solid var(--border);background:var(--bg);color:var(--text);width:100%;
+  }
+  input[type=text]:focus{outline:none;border-color:var(--black)}
+  select{font-family:inherit;font-size:.92rem;padding:7px 8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text)}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-weight:700;font-size:.76rem;text-transform:uppercase;letter-spacing:.03em}
+  .teams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+  .team-row{display:flex;align-items:center;gap:8px}
+  .team-row input[type=text]:not(.team-pin-input){flex:1 1 auto;min-width:0;width:auto}
+  .team-pin-input{width:70px !important;flex-shrink:0;text-align:center}
+  .team-num{width:22px;color:var(--muted);font-size:.85rem;flex-shrink:0;font-weight:700}
+  .rounds-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .round-btn{
+    padding:9px 15px;border-radius:20px;border:2px solid var(--black);background:#fff;
+    cursor:pointer;font-size:.88rem;font-weight:700;color:var(--black);
+  }
+  .round-btn.active{background:var(--black);color:#fff}
+  .round-btn.done{border-color:var(--ok);color:var(--ok)}
+  .round-btn.active.done{background:var(--ok);border-color:var(--ok);color:#fff}
+  .round-btn .mult{font-size:.72rem;opacity:.75;margin-left:4px}
+  .status-line{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted);margin-bottom:12px}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(26,125,58,.15)}
+  .dot.off{background:var(--red);box-shadow:0 0 0 3px rgba(227,6,19,.15)}
+  .banner{padding:11px 15px;border-radius:10px;background:var(--warnbg);color:var(--warn);font-size:.88rem;margin-bottom:14px;display:none;border:1px solid #f3d9ae}
+  .banner.show{display:block}
+  .choice-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.82rem;font-weight:700}
+  .choice-badge.k{background:#fde4e4;color:var(--red)}
+  .choice-badge.ch{background:#e9e6e1;color:var(--black)}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+  .link-box{display:flex;gap:8px;align-items:center;font-size:.85rem;color:var(--muted);flex-wrap:wrap}
+  .link-box a{color:var(--text);font-weight:600}
+  .footer-hint{font-size:.8rem;color:var(--muted);margin-top:6px}
+  .footer-hint code{background:var(--bg);padding:1px 5px;border-radius:4px;font-size:.85em}
+  .preset-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+  .preset-row input[type=text]{flex:1;min-width:180px}
+  .preset-row input[type=number]{width:64px}
+  .preset-row .preset-min-label{font-size:.8rem;color:var(--muted);white-space:nowrap}
+
+  .team-status-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:8px 12px; border:1px solid var(--border); border-radius:9px; margin-bottom:6px; font-size:.9rem;
+  }
+  .team-status-badge{font-size:.8rem; font-weight:700; padding:2px 9px; border-radius:10px}
+  .team-status-badge.wait{background:var(--bg); color:var(--muted)}
+  .team-status-badge.sent{background:#fff3d6; color:#8a5a00}
+  .team-status-badge.ok{background:#e2f3e6; color:var(--ok)}
+  .team-status-badge.err{background:#fde4e4; color:var(--red)}
+  table.matrix{border-collapse:separate;border-spacing:0;font-size:.78rem}
+  table.matrix th,table.matrix td{border:1px solid var(--border);padding:4px;text-align:center}
+  table.matrix th{background:var(--bg);color:var(--muted);font-weight:700;position:sticky;top:0;z-index:2}
+  table.matrix td.rowlabel{
+    text-align:left;font-weight:700;color:var(--text);position:sticky;left:0;background:var(--card);
+    padding:4px 10px;width:150px;max-width:150px;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;z-index:1;border-right:2px solid var(--border);
+  }
+  table.matrix th:first-child{
+    position:sticky;left:0;top:0;z-index:3;width:150px;max-width:150px;
+    border-right:2px solid var(--border);
+  }
+  table.matrix td.diag{background:repeating-linear-gradient(45deg,var(--bg),var(--bg) 4px,var(--border) 4px,var(--border) 5px)}
+  table.matrix td.cell select{font-size:.74rem;padding:4px 2px;border-radius:6px;border:1px solid var(--border);width:96px;font-weight:600}
+  table.matrix td.cell.k select{background:#fde4e4;color:var(--red);border-color:#f3b8b8}
+  table.matrix td.cell.ch select{background:#e9e6e1;color:var(--black);border-color:#d5cfc2}
+  table.matrix td.cell.none select{background:transparent}
+
+  .compact-picker{display:flex;flex-wrap:wrap;gap:6px}
+  .compact-team-btn{
+    width:36px;height:36px;border-radius:50%;border:2px solid var(--border);
+    background:#fff;font-weight:700;cursor:pointer;padding:0;
+  }
+  .compact-team-btn.active{background:var(--black);border-color:var(--black);color:#fff}
+  .compact-team-btn.done{border-color:var(--ok)}
+  .compact-team-btn.active.done{background:var(--ok);border-color:var(--ok)}
+  .compact-list{display:flex;flex-direction:column;gap:8px}
+  .compact-row{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--card);
+  }
+  .compact-row-name{font-weight:600;font-size:.95rem}
+  .compact-row select{font-size:.95rem;padding:8px 10px;border-radius:8px;border:1px solid var(--border);min-width:120px}
+  .compact-row select.k{background:#fde4e4;color:var(--red);border-color:#f3b8b8}
+  .compact-row select.ch{background:#e9e6e1;color:var(--black);border-color:#d5cfc2}
+  @media (max-width:640px){
+    .card{padding:14px}
+    .teams-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<span class="card-deco tl">♠</span>
+<span class="card-deco tr">♥</span>
+<span class="card-deco bl">♦</span>
+<span class="card-deco br">♣</span>
+<div class="wrap">
+  <h1><span class="red">Красное</span> – Чёрное <span class="red suit">♦</span><span class="suit">♣</span></h1>
+  <div class="sub">Ассистенты вносят ходы прямо сюда (с бланков или устно) — все, кто открыл эту страницу, видят правки друг друга сразу</div>
+
+  <div class="banner" id="banner"></div>
+
+  <div class="status-line">
+    <span class="dot" id="syncDot"></span>
+    <span id="syncText">Подключение…</span>
+  </div>
+
+  <div class="card">
+    <h2>Названия команд</h2>
+    <div class="toolbar" style="margin-bottom:14px">
+      <label style="font-size:.88rem;color:var(--muted);font-weight:600">Число команд:</label>
+      <input type="number" id="teamCountInput" min="2" max="24" style="width:70px">
+      <button id="applyTeamCountBtn">Применить</button>
+    </div>
+    <div class="teams-grid" id="teamsGrid"></div>
+    <div class="footer-hint">Названия видны и сохраняются всем сразу. PIN справа — только для расшифровки, хранится в этом браузере, не отправляется в общую базу; введите один раз на каждом устройстве.</div>
+  </div>
+
+  <div class="card">
+    <h2>Сообщение командам</h2>
+    <div class="footer-hint" style="margin-bottom:10px">Показывается баннером на странице результатов у всех команд, пока не очистите. Например: "Форум через 5 минут" или "Все команды, внимание на экран".</div>
+    <div class="toolbar">
+      <input type="text" id="announceInput" placeholder="Например: перерыв 5 минут" style="flex:1;min-width:220px">
+      <button class="primary" id="announceSendBtn">Отправить</button>
+      <button id="announceClearBtn">Очистить</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Ход игры</h2>
+    <div id="progressWrap" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);margin-bottom:5px">
+        <span id="progressLabel">Опубликовано 0 из 7 ходов</span>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;height:10px;overflow:hidden">
+        <div id="progressBar" style="background:var(--ok);height:100%;width:0%;transition:width .3s"></div>
+      </div>
+    </div>
+    <div class="rounds-row" id="roundsRow"></div>
+    <div class="footer-hint" style="margin-bottom:10px" id="editHint"></div>
+    <div class="toolbar" style="margin-bottom:10px">
+      <button id="viewToggleBtn">📱 Компактный вид (для телефона)</button>
+    </div>
+    <div id="choicesBody" style="overflow-x:auto"></div>
+    <div class="toolbar" style="margin-top:14px">
+      <button class="primary" id="computeBtn">Посчитать и опубликовать итог хода</button>
+      <button class="danger" id="unpublishBtn" style="display:none">✏️ Исправить этот ход</button>
+      <span id="computeHint" class="footer-hint"></span>
+    </div>
+  </div>
+
+  <div class="card" id="previewCard" style="display:none">
+    <h2>Результат хода — проверьте перед публикацией</h2>
+    <table>
+      <thead><tr><th>Команда</th><th>Выбор</th><th>Изменение</th><th>Итого после хода</th></tr></thead>
+      <tbody id="previewBody"></tbody>
+    </table>
+    <div class="toolbar" style="margin-top:12px">
+      <button class="danger" id="publishBtn">Опубликовать этот итог</button>
+      <button id="cancelPreviewBtn">Отмена</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Показ командам</h2>
+    <div class="footer-hint" style="margin-bottom:10px">На странице результатов у команд будет видна матрица выбранного здесь хода — можно показать любой из уже опубликованных, не только последний.</div>
+    <div class="rounds-row" id="displayRoundRow"></div>
+  </div>
+
+  <div class="card">
+    <h2>Ввод командами напрямую</h2>
+    <div class="footer-hint" style="margin-bottom:10px">
+      Команды сами вводят выбор на той же странице результатов (ссылка внизу пульта) и шифруют его своим PIN-кодом
+      (PIN задаётся выше, в карточке "Названия команд"). Здесь вы видите, что они прислали — расшифрованное само подставится в матрицу хода выше.
+    </div>
+
+    <div class="footer-hint" style="margin-bottom:6px" id="openRoundStatus">Ход для ввода сейчас закрыт.</div>
+    <div class="rounds-row" id="openRoundRow"></div>
+
+    <div class="footer-hint" style="margin:14px 0 8px">Статус по командам для хода <span id="teamStatusRoundLabel">—</span>:</div>
+    <div id="teamStatusList"></div>
+  </div>
+
+  <div class="card">
+    <h2>Таймер для команд</h2>
+    <div class="footer-hint" style="margin-bottom:10px">Отдельный от общего таймера — виден на странице результатов у всех команд.</div>
+    <div class="toolbar">
+      <div id="timerDisplay" style="font-family:'Arvo',Georgia,serif;font-weight:700;font-size:1.8rem;min-width:90px">00:00</div>
+      <input type="number" id="timerMinutes" min="1" max="99" value="5" style="width:70px">
+      <button id="timerSetBtn">Установить</button>
+      <button class="primary" id="timerToggleBtn">▶ Старт</button>
+      <button id="timerResetBtn">Сброс</button>
+      <button id="timer30SecBtn">⏱ 30 сек</button>
+    </div>
+    <div class="footer-hint" style="margin:12px 0 4px">Готовые фразы — редактируются здесь же, сохраняются для всех. В тексте можно писать <code>{ход}</code> — подставится номер текущего хода в момент запуска.</div>
+    <div id="timerPresetsEditor"></div>
+    <button id="addPresetBtn" style="margin-top:8px">+ Добавить фразу</button>
+  </div>
+
+  <div class="card">
+    <h2>Итоги по ходам</h2>
+    <table>
+      <thead><tr id="historyHead"><th>Команда</th></tr></thead>
+      <tbody id="historyBody"></tbody>
+    </table>
+    <div class="toolbar" style="margin-top:14px">
+      <button id="exportBtn">⬇ Скачать отчёт (Excel)</button>
+      <span class="footer-hint" id="exportHint"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Ссылка для команд</h2>
+    <div class="link-box">📊 Результаты и ввод хода: <a id="resultsLink" target="_blank" rel="noopener"></a>
+      <button id="copyResultsBtn">Скопировать</button>
+    </div>
+    <div class="footer-hint">Одна ссылка на всё: команды видят результаты и на этой же странице вводят свой ход (по PIN-коду). Этот же файл пульта откройте на устройствах ассистентов — ввод синхронизируется сам.</div>
+  </div>
+
+  <div class="card">
+    <h2>Новая игра</h2>
+    <div class="footer-hint" style="margin-bottom:10px">Полностью очищает все ходы, выборы и итоги для всех, кто открыл пульт или результаты. Число команд и их названия не трогает.</div>
+    <button class="danger" id="resetGameBtn">🗑 Сбросить всё для новой игры</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+// ── Настройки игры ──────────────────────────────────────
+let teamCount = 10;   // живое значение, меняется через UI и синхронизируется всем
+const MAX_TEAMS = 24;
+const ROUND_COUNT = 7;
+const MULT = {3:2, 5:3, 7:4};
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBAS-nrszCuIo3yTX2N0gzlRye16R_Nd94",
+  authDomain: "arhipelag-9e472.firebaseapp.com",
+  projectId: "arhipelag-9e472",
+  storageBucket: "arhipelag-9e472.firebasestorage.app",
+  messagingSenderId: "621807083716",
+  appId: "1:621807083716:web:e058401af69e1bc1e3a991"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const stateRef = db.collection('redblack').doc('state');
+const FieldValue = firebase.firestore.FieldValue;
+
+// ── Локальное состояние (зеркало Firestore + текущий просматриваемый ход) ──
+let teams = {};
+let currentRound = 1;          // какой ход сейчас просматриваем/вводим (у каждого свой, не синхронизируется)
+let roundInputs = {};          // {round: {i: {j: 'К'|'Ч'}}} — общий, живой
+let finishedRounds = {};       // {round: {money, pairwise, mult}} — общий
+let cumulative = {};           // {team: total} — общий
+let displayRound = null;       // какой ход показывается командам на странице результатов — общий
+let openRound = 0;             // какой ход сейчас открыт для прямого ввода командами — общий, 0 = закрыто
+let teamSubmissions = {};      // {round: {team: {iv,data,submittedAt}}} — шифрованные ответы команд, общий
+let teamPins = {};             // {team: 'PIN'} — только в этом браузере, НЕ в Firestore
+let teamDecryptStatus = {};    // {team: 'wait'|'sent'|'ok'|'err'} — для просматриваемого хода
+let lateOverrides = {};        // {team: round} — кому разрешена дозаявка после закрытия ввода, общий
+let timerRunning = false, timerEndAt = null, timerTotal = 300, timerLeft = 300, timerTick = null;
+let timerClosesRound = false; // если true — этот таймер при истечении закроет ввод хода
+let timerClearsAnnounce = false; // если true — этот таймер при истечении уберёт баннер сообщения
+
+function defaultTeams(){
+  const t = {};
+  for(let i = 1; i <= teamCount; i++) t[i] = 'Команда ' + i;
+  return t;
+}
+teams = defaultTeams();
+for(let i = 1; i <= teamCount; i++) cumulative[i] = 0;
+
+function showBanner(msg){
+  const el = $('banner');
+  if(!msg){ el.classList.remove('show'); return; }
+  el.textContent = msg; el.classList.add('show');
+}
+
+// ── Команды: рендер и сохранение названий ────────────────
+function renderTeams(){
+  const grid = $('teamsGrid');
+  // убираем строки команд, которых больше нет в текущем числе
+  grid.querySelectorAll('.team-row').forEach(row => {
+    const n = parseInt(row.querySelector('input[data-team]').dataset.team, 10);
+    if(n > teamCount) row.remove();
+  });
+  for(let i = 1; i <= teamCount; i++){
+    let input = grid.querySelector(`input[data-team="${i}"]`);
+    let pinInput = grid.querySelector(`input[data-pin="${i}"]`);
+    if(!input){
+      const row = document.createElement('div');
+      row.className = 'team-row';
+      const num = document.createElement('span');
+      num.className = 'team-num'; num.textContent = '#' + i;
+      input = document.createElement('input');
+      input.type = 'text'; input.dataset.team = i;
+      input.placeholder = 'Название';
+      input.addEventListener('input', () => {
+        clearTimeout(input._t);
+        input._t = setTimeout(() => {
+          stateRef.set({teams: {[i]: input.value}}, {merge: true}).catch(() => {});
+        }, 400);
+      });
+      pinInput = document.createElement('input');
+      pinInput.type = 'text'; pinInput.dataset.pin = i;
+      pinInput.className = 'team-pin-input';
+      pinInput.placeholder = 'PIN';
+      pinInput.title = 'PIN-код команды — только в этом браузере, для расшифровки её хода';
+      pinInput.addEventListener('input', () => {
+        clearTimeout(pinInput._t);
+        pinInput._t = setTimeout(() => {
+          if(pinInput.value) teamPins[i] = pinInput.value; else delete teamPins[i];
+          savePinsMap();
+          processTeamSubmissions();
+        }, 400);
+      });
+      row.appendChild(num); row.appendChild(input); row.appendChild(pinInput);
+      grid.appendChild(row);
+    }
+    if(document.activeElement !== input) input.value = teams[i] || ('Команда ' + i);
+    if(document.activeElement !== pinInput) pinInput.value = teamPins[i] || '';
+  }
+  if(document.activeElement !== $('teamCountInput')) $('teamCountInput').value = teamCount;
+}
+
+// ── Ходы: переключатель (локальный просмотр, не синхронизируется) ────
+function renderRounds(){
+  const row = $('roundsRow');
+  row.innerHTML = '';
+  for(let r = 1; r <= ROUND_COUNT; r++){
+    const btn = document.createElement('button');
+    btn.className = 'round-btn' + (r === currentRound ? ' active' : '') + (finishedRounds[r] ? ' done' : '');
+    btn.innerHTML = 'Ход ' + r + (MULT[r] ? '<span class="mult">×' + MULT[r] + '</span>' : '') + (finishedRounds[r] ? ' ✓' : '');
+    btn.addEventListener('click', () => { currentRound = r; renderAll(); });
+    row.appendChild(btn);
+  }
+  $('editHint').textContent = finishedRounds[currentRound]
+    ? 'Этот ход уже опубликован — правки здесь на итог больше не повлияют.'
+    : 'Вводите выборы команд друг против друга — сохраняется сразу для всех.';
+}
+
+// ── Матрица выборов текущего хода ────────────────────────
+function cellValue(i, j, round){
+  round = round || currentRound;
+  return (roundInputs[round] && roundInputs[round][i] && roundInputs[round][i][j]) || null;
+}
+
+function setCell(i, j, value, round){
+  round = round || currentRound;
+  const path = `roundInputs.${round}.${i}.${j}`;
+  const payload = {};
+  payload[path] = value ? value : FieldValue.delete();
+  stateRef.update(payload).catch(() => {
+    // документ ещё не существовал — создаём и повторяем
+    stateRef.set({}, {merge: true}).then(() => stateRef.update(payload)).catch(() => {});
+  });
+}
+
+let compactView = false;
+try{ compactView = localStorage.getItem('rb_compact_view') === '1'; }catch(e){}
+let compactTeam = 1;
+
+function updateViewToggleBtn(){
+  $('viewToggleBtn').textContent = compactView ? '🖥 Обычная таблица' : '📱 Компактный вид (для телефона)';
+}
+
+function renderChoices(){
+  const wrap = $('choicesBody');
+  wrap.innerHTML = '';
+  const locked = !!finishedRounds[currentRound];
+
+  let filled = 0, total = 0;
+  for(let i = 1; i <= teamCount; i++){
+    for(let j = 1; j <= teamCount; j++){
+      if(i === j) continue;
+      total++;
+      if(cellValue(i, j)) filled++;
+    }
+  }
+
+  if(compactView){
+    renderChoicesCompact(wrap, locked);
+  }else{
+    renderChoicesTable(wrap, locked);
+  }
+
+  const hint = $('computeHint');
+  hint.textContent = filled + ' из ' + total + ' пар заполнено для хода ' + currentRound;
+  $('computeBtn').disabled = filled < total || locked;
+  $('computeBtn').style.display = locked ? 'none' : '';
+  $('unpublishBtn').style.display = locked ? '' : 'none';
+  if(locked) hint.textContent += ' — этот ход уже опубликован';
+}
+
+function renderChoicesTable(wrap, locked){
+  const table = document.createElement('table');
+  table.className = 'matrix';
+  const thead = document.createElement('thead');
+  let headRow = '<tr><th>Команда \\ против</th>';
+  for(let j = 1; j <= teamCount; j++){
+    const name = teams[j] || 'Команда ' + j;
+    headRow += `<th title="${name}">${j}. ${name}</th>`;
+  }
+  headRow += '</tr>';
+  thead.innerHTML = headRow;
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  for(let i = 1; i <= teamCount; i++){
+    const tr = document.createElement('tr');
+    let row = `<td class="rowlabel">${i}. ${teams[i]}</td>`;
+    for(let j = 1; j <= teamCount; j++){
+      if(i === j){ row += '<td class="diag">—</td>'; continue; }
+      const val = cellValue(i, j);
+      const cls = val === 'К' ? 'k' : val === 'Ч' ? 'ch' : 'none';
+      row += `<td class="cell ${cls}">
+        <select data-i="${i}" data-j="${j}" ${locked ? 'disabled' : ''}>
+          <option value="">— нет —</option>
+          <option value="К" ${val === 'К' ? 'selected' : ''}>Красное</option>
+          <option value="Ч" ${val === 'Ч' ? 'selected' : ''}>Чёрное</option>
+        </select>
+      </td>`;
+    }
+    tr.innerHTML = row;
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+
+  wrap.querySelectorAll('select').forEach(sel => {
+    sel.addEventListener('change', () => {
+      const i = parseInt(sel.dataset.i, 10), j = parseInt(sel.dataset.j, 10);
+      setCell(i, j, sel.value);
+    });
+  });
+}
+
+function renderChoicesCompact(wrap, locked){
+  if(compactTeam > teamCount) compactTeam = 1;
+
+  const picker = document.createElement('div');
+  picker.className = 'compact-picker';
+  for(let i = 1; i <= teamCount; i++){
+    let filledForTeam = 0;
+    for(let j = 1; j <= teamCount; j++){ if(i !== j && cellValue(i, j)) filledForTeam++; }
+    const btn = document.createElement('button');
+    btn.className = 'compact-team-btn' + (i === compactTeam ? ' active' : '') + (filledForTeam === teamCount - 1 ? ' done' : '');
+    btn.textContent = i;
+    btn.title = teams[i];
+    btn.addEventListener('click', () => { compactTeam = i; renderChoices(); });
+    picker.appendChild(btn);
+  }
+  wrap.appendChild(picker);
+
+  const title = document.createElement('div');
+  title.style.cssText = 'font-family:Arvo,Georgia,serif;font-weight:700;margin:12px 0 8px';
+  title.textContent = `${compactTeam}. ${teams[compactTeam]} — против кого что`;
+  wrap.appendChild(title);
+
+  const list = document.createElement('div');
+  list.className = 'compact-list';
+  for(let j = 1; j <= teamCount; j++){
+    if(j === compactTeam) continue;
+    const val = cellValue(compactTeam, j);
+    const row = document.createElement('div');
+    row.className = 'compact-row';
+    row.innerHTML = `<span class="compact-row-name">${j}. ${teams[j]}</span>`;
+    const sel = document.createElement('select');
+    sel.disabled = locked;
+    sel.innerHTML = `
+      <option value="">— нет —</option>
+      <option value="К" ${val === 'К' ? 'selected' : ''}>Красное</option>
+      <option value="Ч" ${val === 'Ч' ? 'selected' : ''}>Чёрное</option>`;
+    sel.className = val === 'К' ? 'k' : val === 'Ч' ? 'ch' : 'none';
+    sel.addEventListener('change', () => {
+      setCell(compactTeam, j, sel.value);
+    });
+    row.appendChild(sel);
+    list.appendChild(row);
+  }
+  wrap.appendChild(list);
+}
+
+$('viewToggleBtn').addEventListener('click', () => {
+  compactView = !compactView;
+  try{ localStorage.setItem('rb_compact_view', compactView ? '1' : '0'); }catch(e){}
+  updateViewToggleBtn();
+  renderChoices();
+});
+updateViewToggleBtn();
+
+// ── Подсчёт хода ──────────────────────────────────────────
+function payoff(mine, opp){
+  if(mine === 'К' && opp === 'К') return -3000;
+  if(mine === 'Ч' && opp === 'Ч') return 3000;
+  if(mine === 'Ч' && opp === 'К') return -5000;
+  return 5000;
+}
+
+function computeRound(){
+  const pairs = roundInputs[currentRound] || {};
+  const mult = MULT[currentRound] || 1;
+  const money = {};
+  const snapshot = {};
+  for(let i = 1; i <= teamCount; i++){
+    snapshot[i] = {};
+    let sum = 0;
+    for(let j = 1; j <= teamCount; j++){
+      if(i === j) continue;
+      const mine = pairs[i] && pairs[i][j];
+      const opp = pairs[j] && pairs[j][i];
+      snapshot[i][j] = mine;
+      sum += payoff(mine, opp);
+    }
+    money[i] = sum * mult;
+  }
+  return {pairwise: snapshot, money, mult};
+}
+
+$('computeBtn').addEventListener('click', () => {
+  showPreview(computeRound());
+});
+
+let pendingResult = null;
+function showPreview(result){
+  pendingResult = result;
+  const body = $('previewBody');
+  body.innerHTML = '';
+  for(let i = 1; i <= teamCount; i++){
+    const after = (cumulative[i] || 0) + result.money[i];
+    const vals = Object.values(result.pairwise[i]);
+    const kCount = vals.filter(v => v === 'К').length;
+    const chCount = vals.filter(v => v === 'Ч').length;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${teams[i]}</td>
+      <td><span class="choice-badge k">${kCount}× К</span> <span class="choice-badge ch">${chCount}× Ч</span></td>
+      <td style="color:${result.money[i] >= 0 ? 'var(--ok)' : 'var(--red)'}">${result.money[i] >= 0 ? '+' : ''}${result.money[i].toLocaleString('ru-RU')} ₽</td>
+      <td>${after.toLocaleString('ru-RU')} ₽</td>`;
+    body.appendChild(tr);
+  }
+  $('previewCard').style.display = 'block';
+  $('previewCard').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+$('cancelPreviewBtn').addEventListener('click', () => {
+  $('previewCard').style.display = 'none';
+  pendingResult = null;
+});
+
+$('unpublishBtn').addEventListener('click', async () => {
+  const r = currentRound;
+  if(!confirm('Отменить публикацию хода ' + r + '? Его сумма будет вычтена из общих итогов, а матрицу можно будет поправить и опубликовать заново.')) return;
+  try{
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(stateRef);
+      const d = snap.exists ? snap.data() : {};
+      const fr = d.finishedRounds && d.finishedRounds[r];
+      if(!fr) return; // уже отменено кем-то другим — ничего не делаем
+      const cum = Object.assign({}, d.cumulative || {});
+      for(let i = 1; i <= teamCount; i++){
+        cum[i] = (cum[i] || 0) - (fr.money ? (fr.money[i] || 0) : 0);
+      }
+      const update = {cumulative: cum};
+      update[`finishedRounds.${r}`] = FieldValue.delete();
+      tx.update(stateRef, update);
+    });
+  }catch(e){
+    showBanner('Не удалось отменить публикацию: ' + e.message);
+  }
+});
+
+$('publishBtn').addEventListener('click', async () => {
+  if(!pendingResult) return;
+  const r = currentRound;
+  const result = pendingResult;
+  try{
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(stateRef);
+      const d = snap.exists ? snap.data() : {};
+      if(d.finishedRounds && d.finishedRounds[r]){
+        throw new Error('ALREADY_PUBLISHED');
+      }
+      const cum = Object.assign({}, d.cumulative || {});
+      for(let i = 1; i <= teamCount; i++){
+        cum[i] = (cum[i] || 0) + (result.money[i] || 0);
+      }
+      const update = {cumulative: cum, displayRound: r, announce: `Итоги хода ${r} опубликованы!`};
+      update[`finishedRounds.${r}`] = result;
+      tx.update(stateRef, update);
+    });
+  }catch(e){
+    $('previewCard').style.display = 'none';
+    pendingResult = null;
+    if(e.message === 'ALREADY_PUBLISHED'){
+      showBanner('Этот ход уже опубликовал кто-то другой буквально только что — итог не задвоен, можно проверить в истории.');
+    }else{
+      showBanner('Не удалось опубликовать итог: ' + e.message);
+    }
+    return;
+  }
+  $('announceInput').value = `Итоги хода ${r} опубликованы!`;
+  $('previewCard').style.display = 'none';
+  pendingResult = null;
+  if(currentRound < ROUND_COUNT) currentRound++;
+});
+
+// ── История по ходам ─────────────────────────────────────
+function renderDisplayRoundRow(){
+  const row = $('displayRoundRow');
+  const doneRounds = Object.keys(finishedRounds).map(Number).sort((a, b) => a - b);
+  if(!doneRounds.length){
+    row.innerHTML = '<span class="footer-hint">Пока нет опубликованных ходов — нечего показывать.</span>';
+    return;
+  }
+  row.innerHTML = '';
+  doneRounds.forEach(r => {
+    const btn = document.createElement('button');
+    btn.className = 'round-btn' + (r === displayRound ? ' active' : '');
+    btn.textContent = 'Ход ' + r;
+    btn.addEventListener('click', () => {
+      stateRef.set({displayRound: r}, {merge: true}).catch(() => {});
+    });
+    row.appendChild(btn);
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+//  Прямой ввод командами: шифрование, PIN-коды, авторасшифровка
+// ════════════════════════════════════════════════════════════
+
+// ── Шифрование (Web Crypto API, встроено в браузер) — те же функции, что на странице команд ──
+async function deriveKey(pin){
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(pin), {name:'PBKDF2'}, false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2', salt: enc.encode('redblack-game-salt'), iterations: 100000, hash: 'SHA-256'},
+    keyMaterial, {name:'AES-GCM', length:256}, false, ['encrypt', 'decrypt']
+  );
+}
+async function decryptJSON(pin, payload){
+  const key = await deriveKey(pin);
+  const iv = Uint8Array.from(atob(payload.iv), c => c.charCodeAt(0));
+  const data = Uint8Array.from(atob(payload.data), c => c.charCodeAt(0));
+  const buf = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
+  return JSON.parse(new TextDecoder().decode(buf));
+}
+
+// ── PIN-коды: только в этом браузере, никогда не пишутся в Firestore ──
+function savePinsMap(){
+  try{ localStorage.setItem('rb_team_pins_map', JSON.stringify(teamPins)); }catch(e){}
+}
+function loadPins(){
+  try{
+    const saved = localStorage.getItem('rb_team_pins_map');
+    if(saved) teamPins = JSON.parse(saved);
+  }catch(e){}
+}
+
+// ── Открыть/закрыть ход для ввода командами ──
+function renderOpenRoundRow(){
+  const row = $('openRoundRow');
+  row.innerHTML = '';
+  $('openRoundStatus').textContent = openRound ? `Сейчас открыт для ввода: Ход ${openRound}.` : 'Ход для ввода сейчас закрыт. Откройте кнопкой "▶ Запустить" у нужной фразы (с галочкой "+ открыть ход") в карточке "Таймер для команд".';
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = openRound ? '✖ Закрыть ввод раньше времени' : '✖ Ввод закрыт';
+  closeBtn.disabled = !openRound;
+  closeBtn.addEventListener('click', () => {
+    stateRef.set({openRound: 0}, {merge: true}).catch(() => {});
+  });
+  row.appendChild(closeBtn);
+}
+
+// ── Статус команд + автоматическая расшифровка в матрицу хода ──
+let decryptRunToken = 0;
+async function processTeamSubmissions(){
+  const myToken = ++decryptRunToken;
+  const round = currentRound; // статус смотрим по тому ходу, что открыт на вкладке — переживает закрытие ввода
+  const subsForRound = (teamSubmissions[round]) || {};
+  const status = {};
+
+  for(let i = 1; i <= teamCount; i++){
+    const sub = subsForRound[i];
+    if(!sub){ status[i] = 'wait'; continue; }
+    const pin = teamPins[i];
+    if(!pin){ status[i] = 'sent'; continue; }
+    try{
+      const choices = await decryptJSON(pin, sub);
+      if(myToken !== decryptRunToken) return; // подоспели новые данные, эта расшифровка устарела
+      status[i] = 'ok';
+      // подставляем расшифрованное в обычную матрицу хода — дальше всё работает как при ручном вводе
+      if(round && !finishedRounds[round]){
+        Object.keys(choices).forEach(jStr => {
+          const j = parseInt(jStr, 10);
+          const val = choices[jStr];
+          if((val === 'К' || val === 'Ч') && cellValue(i, j, round) !== val){
+            setCell(i, j, val, round);
+          }
+        });
+        // дозаявка выполнена — снимаем её, чтобы не путалась под ногами
+        if(lateOverrides[i] === round){
+          const path = `lateOverrides.${i}`;
+          stateRef.update({[path]: FieldValue.delete()}).catch(() => {});
+        }
+      }
+    }catch(e){
+      status[i] = 'err';
+    }
+  }
+  if(myToken !== decryptRunToken) return;
+  teamDecryptStatus = status;
+  renderTeamStatusList();
+}
+
+function renderTeamStatusList(){
+  const wrap = $('teamStatusList');
+  wrap.innerHTML = '';
+  const round = currentRound;
+  $('teamStatusRoundLabel').textContent = round;
+  const locked = !!finishedRounds[round];
+  const labels = {
+    wait: ['Ожидаем', 'wait'],
+    sent: ['Отправлено, нет PIN для расшифровки', 'sent'],
+    ok: ['Расшифровано ✓', 'ok'],
+    err: ['Отправлено, PIN не подходит', 'err']
+  };
+  for(let i = 1; i <= teamCount; i++){
+    const st = teamDecryptStatus[i] || 'wait';
+    const [text, cls] = labels[st];
+    const row = document.createElement('div');
+    row.className = 'team-status-row';
+    let html = `<span>${i}. ${teams[i]}</span><span class="team-status-badge ${cls}">${text}</span>`;
+    row.innerHTML = html;
+
+    if(st !== 'ok' && !locked){
+      const lateBtn = document.createElement('button');
+      const hasOverride = lateOverrides[i] === round;
+      lateBtn.textContent = hasOverride ? '✓ Дозаявка открыта' : 'Разрешить дозаявку';
+      lateBtn.style.cssText = 'font-size:.78rem; padding:5px 10px; margin-left:8px';
+      if(hasOverride) lateBtn.disabled = true;
+      lateBtn.addEventListener('click', () => {
+        const path = `lateOverrides.${i}`;
+        stateRef.set({}, {merge: true}).then(() =>
+          stateRef.update({[path]: round})
+        ).catch(() => {});
+      });
+      row.appendChild(lateBtn);
+    }
+    wrap.appendChild(row);
+  }
+}
+
+loadPins();
+
+function renderHistory(){
+  const head = $('historyHead');
+  head.innerHTML = '<th>Команда</th>';
+  const doneRounds = Object.keys(finishedRounds).map(Number).sort((a,b) => a - b);
+  doneRounds.forEach(r => { head.innerHTML += `<th>Ход ${r}</th>`; });
+  head.innerHTML += '<th>Итого</th>';
+
+  const body = $('historyBody');
+  body.innerHTML = '';
+  for(let i = 1; i <= teamCount; i++){
+    let row = `<td>${teams[i]}</td>`;
+    doneRounds.forEach(r => {
+      const v = finishedRounds[r].money[i];
+      row += `<td style="color:${v >= 0 ? 'var(--ok)' : 'var(--red)'}">${v >= 0 ? '+' : ''}${v.toLocaleString('ru-RU')}</td>`;
+    });
+    row += `<td><b>${(cumulative[i] || 0).toLocaleString('ru-RU')} ₽</b></td>`;
+    const tr = document.createElement('tr');
+    tr.innerHTML = row;
+    body.appendChild(tr);
+  }
+}
+
+function renderProgress(){
+  const done = Object.keys(finishedRounds).length;
+  $('progressLabel').textContent = `Опубликовано ${done} из ${ROUND_COUNT} ходов`;
+  $('progressBar').style.width = Math.round(done / ROUND_COUNT * 100) + '%';
+}
+
+function renderAll(){
+  renderTeams();
+  renderRounds();
+  renderChoices();
+  renderHistory();
+  renderDisplayRoundRow();
+  renderProgress();
+  renderOpenRoundRow();
+  renderTeamStatusList();
+}
+
+// ── Таймер для команд (общий, видно на странице результатов) ──────
+function fmtTime(sec){
+  sec = Math.max(0, Math.round(sec));
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function updateTimerUI(){
+  $('timerDisplay').textContent = fmtTime(timerLeft);
+  $('timerToggleBtn').textContent = timerRunning ? '⏸ Пауза' : (timerLeft > 0 && timerLeft < timerTotal ? '▶ Продолжить' : '▶ Старт');
+}
+
+function localTimerPoll(){
+  if(!timerRunning || !timerEndAt) return;
+  const left = Math.max(0, Math.round((timerEndAt - Date.now()) / 1000));
+  timerLeft = left;
+  updateTimerUI();
+  if(left <= 0){
+    clearInterval(timerTick); timerTick = null;
+    timerRunning = false; // иначе следующий запуск не перезапустит опрос
+    updateTimerUI();
+    const payload = {running: false, endAt: null, total: timerTotal, left: 0};
+    const update = {timer: payload};
+    if(timerClosesRound && openRound){
+      update.openRound = 0; // время вышло — кто не успел, тот не успел
+    }
+    if(timerClearsAnnounce){
+      update.announce = '';
+      $('announceInput').value = '';
+    }
+    stateRef.set(update, {merge: true}).catch(e => {
+      showBanner('Не удалось обновить таймер (проверьте интернет): ' + e.message);
+    });
+  }
+}
+
+function pushTimer(payload){
+  stateRef.set({timer: payload}, {merge: true}).catch(e => {
+    showBanner('Не удалось обновить таймер (проверьте интернет): ' + e.message);
+  });
+}
+
+$('timerSetBtn').addEventListener('click', () => {
+  const m = parseInt($('timerMinutes').value, 10);
+  if(!m || m < 1) return;
+  const total = m * 60;
+  pushTimer({running: false, endAt: null, total, left: total, closesRound: false, clearsAnnounce: false});
+});
+
+$('timerToggleBtn').addEventListener('click', () => {
+  if(timerRunning){
+    pushTimer({running: false, endAt: null, total: timerTotal, left: timerLeft, closesRound: false, clearsAnnounce: false});
+  }else{
+    const left = timerLeft > 0 ? timerLeft : timerTotal;
+    pushTimer({running: true, endAt: Date.now() + left * 1000, total: timerTotal, left, closesRound: false, clearsAnnounce: false});
+  }
+});
+
+$('timerResetBtn').addEventListener('click', () => {
+  pushTimer({running: false, endAt: null, total: timerTotal, left: timerTotal, closesRound: false, clearsAnnounce: false});
+});
+
+$('timer30SecBtn').addEventListener('click', () => {
+  pushTimer({running: true, endAt: Date.now() + 30000, total: 30, left: 30, closesRound: false, clearsAnnounce: false});
+});
+
+// ── Готовые фразы: редактируемые, сохраняются в общем состоянии ──
+let timerPresets = [
+  {message: 'Ход {ход} начинается', minutes: 5, openRound: true},
+  {message: 'Идёт обсуждение внутри команды', minutes: 10, openRound: false},
+  {message: 'Время вышло — готовим итоги', minutes: null, openRound: false}
+];
+let presetsSaved = false;
+
+function savePresets(){
+  stateRef.set({timerPresets}, {merge: true}).catch(e => {
+    showBanner('Не удалось сохранить фразы: ' + e.message);
+  });
+}
+
+function runPreset(preset){
+  const msg = (preset.message || '').replace(/\{ход\}/gi, String(currentRound));
+  const update = {announce: msg};
+  if(preset.minutes){
+    const total = preset.minutes * 60;
+    update.timer = {running: true, endAt: Date.now() + total * 1000, total, left: total, closesRound: !!preset.openRound, clearsAnnounce: true};
+    $('timerMinutes').value = preset.minutes;
+  }
+  if(preset.openRound){
+    update.openRound = currentRound;
+  }
+  stateRef.set(update, {merge: true}).catch(e => {
+    showBanner('Не удалось запустить фразу: ' + e.message);
+  });
+  $('announceInput').value = msg;
+}
+
+function renderTimerPresets(){
+  const editor = $('timerPresetsEditor');
+  editor.innerHTML = '';
+  timerPresets.forEach((preset, idx) => {
+    const row = document.createElement('div');
+    row.className = 'preset-row';
+
+    const msgInput = document.createElement('input');
+    msgInput.type = 'text';
+    msgInput.value = preset.message || '';
+    msgInput.placeholder = 'Например: Ход {ход} начинается';
+    msgInput.addEventListener('input', () => {
+      clearTimeout(msgInput._t);
+      msgInput._t = setTimeout(() => {
+        timerPresets[idx].message = msgInput.value;
+        savePresets();
+      }, 500);
+    });
+
+    const minLabel = document.createElement('span');
+    minLabel.className = 'preset-min-label';
+    minLabel.textContent = 'мин:';
+
+    const minInput = document.createElement('input');
+    minInput.type = 'number';
+    minInput.min = '0';
+    minInput.max = '99';
+    minInput.step = '0.5';
+    minInput.placeholder = '—';
+    minInput.value = preset.minutes || '';
+    minInput.title = 'Пусто = без запуска таймера, только сообщение. Можно дробные — 0.5 = 30 секунд';
+    minInput.addEventListener('input', () => {
+      clearTimeout(minInput._t);
+      minInput._t = setTimeout(() => {
+        const v = parseFloat(minInput.value);
+        timerPresets[idx].minutes = v > 0 ? v : null;
+        savePresets();
+      }, 500);
+    });
+
+    const openLabel = document.createElement('label');
+    openLabel.style.cssText = 'display:flex;align-items:center;gap:5px;font-size:.78rem;color:var(--muted);white-space:nowrap';
+    const openCheck = document.createElement('input');
+    openCheck.type = 'checkbox';
+    openCheck.checked = !!preset.openRound;
+    openCheck.title = 'Также открыть текущий ход для ввода командами';
+    openCheck.addEventListener('change', () => {
+      timerPresets[idx].openRound = openCheck.checked;
+      savePresets();
+    });
+    openLabel.appendChild(openCheck);
+    openLabel.appendChild(document.createTextNode('+ открыть ход'));
+
+    const runBtn = document.createElement('button');
+    runBtn.className = 'primary';
+    runBtn.textContent = '▶ Запустить';
+    runBtn.addEventListener('click', () => runPreset(timerPresets[idx]));
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '🗑';
+    delBtn.title = 'Удалить фразу';
+    delBtn.addEventListener('click', () => {
+      timerPresets.splice(idx, 1);
+      savePresets();
+      renderTimerPresets();
+    });
+
+    row.appendChild(msgInput);
+    row.appendChild(minLabel);
+    row.appendChild(minInput);
+    row.appendChild(openLabel);
+    row.appendChild(runBtn);
+    row.appendChild(delBtn);
+    editor.appendChild(row);
+  });
+}
+renderTimerPresets();
+
+$('addPresetBtn').addEventListener('click', () => {
+  timerPresets.push({message: '', minutes: null, openRound: false});
+  savePresets();
+  renderTimerPresets();
+});
+
+// ── Живая синхронизация с Firestore ──────────────────────
+stateRef.onSnapshot(snap => {
+  $('syncDot').classList.remove('off');
+  $('syncText').textContent = 'Синхронизировано · ' + new Date().toLocaleTimeString('ru-RU');
+  if(snap.exists){
+    const d = snap.data();
+    if(typeof d.teamCount === 'number') teamCount = Math.min(Math.max(d.teamCount, 2), MAX_TEAMS);
+    if(d.teams) teams = Object.assign(defaultTeams(), d.teams);
+    if(d.roundInputs) roundInputs = d.roundInputs;
+    if(d.finishedRounds) finishedRounds = d.finishedRounds;
+    if(d.cumulative) cumulative = Object.assign({}, cumulative, d.cumulative);
+    if(typeof d.displayRound === 'number') displayRound = d.displayRound;
+    if(typeof d.openRound === 'number') openRound = d.openRound;
+    if(d.teamSubmissions) teamSubmissions = d.teamSubmissions;
+    lateOverrides = d.lateOverrides || {};
+    renderOpenRoundRow();
+    processTeamSubmissions();
+    if(document.activeElement !== $('announceInput')) $('announceInput').value = d.announce || '';
+    if(Array.isArray(d.timerPresets)){
+      const editorHasFocus = $('timerPresetsEditor').contains(document.activeElement);
+      timerPresets = d.timerPresets;
+      if(!editorHasFocus) renderTimerPresets();
+    }else if(!presetsSaved){
+      presetsSaved = true;
+      savePresets();
+    }
+    if(d.timer){
+      timerTotal = d.timer.total || timerTotal;
+      timerClosesRound = !!d.timer.closesRound;
+      timerClearsAnnounce = !!d.timer.clearsAnnounce;
+      if(d.timer.running && d.timer.endAt){
+        timerEndAt = d.timer.endAt;
+        if(!timerRunning){
+          timerRunning = true;
+          clearInterval(timerTick);
+          timerTick = setInterval(localTimerPoll, 250);
+          localTimerPoll();
+        }
+      }else{
+        timerRunning = false;
+        clearInterval(timerTick); timerTick = null;
+        if(typeof d.timer.left === 'number') timerLeft = d.timer.left;
+      }
+      updateTimerUI();
+    }
+  }
+  renderAll();
+}, err => {
+  $('syncDot').classList.add('off');
+  $('syncText').textContent = 'Ошибка синхронизации: ' + err.code;
+});
+
+function sendAnnounce(){
+  const val = $('announceInput').value;
+  stateRef.set({announce: val}, {merge: true}).catch(e => {
+    showBanner('Не удалось отправить сообщение: ' + e.message);
+  });
+}
+$('announceSendBtn').addEventListener('click', sendAnnounce);
+$('announceInput').addEventListener('keydown', (e) => {
+  if(e.key === 'Enter') sendAnnounce();
+});
+$('announceClearBtn').addEventListener('click', () => {
+  $('announceInput').value = '';
+  stateRef.set({announce: ''}, {merge: true}).catch(() => {});
+});
+
+$('applyTeamCountBtn').addEventListener('click', () => {
+  const n = parseInt($('teamCountInput').value, 10);
+  if(!n || n < 2 || n > MAX_TEAMS){
+    showBanner('Число команд должно быть от 2 до ' + MAX_TEAMS);
+    return;
+  }
+  showBanner(null);
+  stateRef.set({teamCount: n}, {merge: true}).catch(() => {});
+});
+
+// ── Ссылка на результаты ─────────────────────────────────
+function setupLinks(){
+  const resultsUrl = new URL(location.href.replace(/[^/]*$/, 'redblack-results.html'));
+  $('resultsLink').href = resultsUrl.toString();
+  $('resultsLink').textContent = resultsUrl.toString();
+  $('copyResultsBtn').addEventListener('click', async () => {
+    try{ await navigator.clipboard.writeText(resultsUrl.toString()); }catch(e){}
+  });
+}
+setupLinks();
+renderAll();
+updateTimerUI();
+stateRef.set({}, {merge: true}).catch(() => {});
+
+$('resetGameBtn').addEventListener('click', async () => {
+  if(!confirm('Точно сбросить всю игру? Все ходы, выборы и итоги будут удалены безвозвратно у всех, кто открыл пульт или результаты.')) return;
+  if(!confirm('Это последнее предупреждение — отменить будет нельзя. Сбросить?')) return;
+  const cum = {};
+  for(let i = 1; i <= teamCount; i++) cum[i] = 0;
+  try{
+    await stateRef.set({
+      teams, teamCount,
+      roundInputs: {},
+      finishedRounds: {},
+      cumulative: cum,
+      gameSession: Date.now()
+    }, {merge: false});
+  }catch(e){
+    showBanner('Не удалось сбросить игру: ' + e.message);
+    return;
+  }
+  currentRound = 1;
+  overrides = {};
+});
+
+// ── Отчёт в Excel ─────────────────────────────────────────
+$('exportBtn').addEventListener('click', () => {
+  const doneRounds = Object.keys(finishedRounds).map(Number).sort((a, b) => a - b);
+  if(!doneRounds.length){
+    $('exportHint').textContent = 'Пока нет опубликованных ходов — нечего экспортировать.';
+    return;
+  }
+
+  const wb = XLSX.utils.book_new();
+
+  // Лист "Итого"
+  const summaryRows = [['Команда', ...doneRounds.map(r => 'Ход ' + r), 'Итого']];
+  for(let i = 1; i <= teamCount; i++){
+    const row = [teams[i]];
+    doneRounds.forEach(r => row.push(finishedRounds[r].money[i]));
+    row.push(cumulative[i] || 0);
+    summaryRows.push(row);
+  }
+  const summarySheet = XLSX.utils.aoa_to_sheet(summaryRows);
+  XLSX.utils.book_append_sheet(wb, summarySheet, 'Итого');
+
+  // По листу на каждый опубликованный ход — матрица выборов
+  doneRounds.forEach(r => {
+    const pairwise = finishedRounds[r].pairwise || {};
+    const rows = [['Команда \\ против', ...Array.from({length: teamCount}, (_, k) => k + 1)]];
+    for(let i = 1; i <= teamCount; i++){
+      const row = [`${i}. ${teams[i]}`];
+      for(let j = 1; j <= teamCount; j++){
+        if(i === j){ row.push('—'); continue; }
+        const v = pairwise[i] ? pairwise[i][j] : null;
+        row.push(v === 'К' ? 'Красное' : v === 'Ч' ? 'Чёрное' : '');
+      }
+      rows.push(row);
+    }
+    const sheet = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, sheet, 'Ход ' + r);
+  });
+
+  const stamp = new Date().toISOString().slice(0, 16).replace('T', '_').replace(':', '-');
+  XLSX.writeFile(wb, `Красное-Чёрное_отчёт_${stamp}.xlsx`);
+});
+</script>
+</body>
+</html>
